@@ -83,13 +83,17 @@ class ColabProxyClient:
         return self.wss.connection_live.is_set() and self.proxy_mcp_client is not None
 
     async def await_proxy_connection(self):
+        # Wait for the browser page to dial in. Do NOT gather/cancel
+        # self._start_task: cancelling it tears down the fastmcp Client
+        # and closes the wss streams, so every later browser dial is
+        # accepted then immediately dropped with a 1000 close - the page
+        # shows "Disconnected from the local Colab MCP server". The old
+        # gather+wait_for cancelled the start task on any 60s timeout or
+        # client-side request cancellation, poisoning the whole server run
+        # after the first failed attempt.
         with contextlib.suppress(asyncio.TimeoutError):
-            # wait for the connection to be live and for the proxy client to fully initialize
-            connection_tasks = asyncio.gather(
-                self.wss.connection_live.wait(), self._start_task
-            )
             await asyncio.wait_for(
-                connection_tasks,
+                self.wss.connection_live.wait(),
                 timeout=UI_CONNECTION_TIMEOUT,
             )
 
@@ -225,9 +229,16 @@ def _make_injected_tools(
         # left over from a prior session (whose fragment points at a dead
         # port). The fragment is still the source of truth for Colab's
         # browser-side code.
-        webbrowser.open_new(
-            f"{COLAB}{SCRATCH_PATH}?p={proxy_client.wss.port}#mcpProxyToken={proxy_client.wss.token}&mcpProxyPort={proxy_client.wss.port}"
+        # Hermes desktop: log the URL instead of popping the system default
+        # browser (auto-opened tabs land in the wrong app and never connect).
+        # The host opens this URL in a chosen browser/preview pane; the
+        # connection handshake is otherwise identical.
+        url = (
+            f"{COLAB}{SCRATCH_PATH}?p={proxy_client.wss.port}"
+            f"#mcpProxyToken={proxy_client.wss.token}"
+            f"&mcpProxyPort={proxy_client.wss.port}"
         )
+        logger.info("Colab browser URL: %s", url)
         return False
 
     async def add_code_cell_stub(code: str = "", cellIndex: int = 0, language: str = "python") -> str:

@@ -63,9 +63,16 @@ async def open_colab_browser_connection() -> str:
     # `?p=<port>` forces a unique URL per server instance so Chrome can't
     # silently reuse a stale tab from a prior session (whose fragment points
     # at a dead port). The fragment remains the source of truth for Colab.
-    webbrowser.open_new(
-        f"{COLAB}{SCRATCH_PATH}?p={_proxy_client.wss.port}#mcpProxyToken={_proxy_client.wss.token}&mcpProxyPort={_proxy_client.wss.port}"
+    # Hermes desktop: log the URL instead of popping the system default
+    # browser (auto-opened tabs land in the wrong app and never connect).
+    # The host opens this URL in a chosen browser/preview pane; the
+    # connection handshake is otherwise identical.
+    _url = (
+        f"{COLAB}{SCRATCH_PATH}?p={_proxy_client.wss.port}"
+        f"#mcpProxyToken={_proxy_client.wss.token}"
+        f"&mcpProxyPort={_proxy_client.wss.port}"
     )
+    logging.info("Colab browser URL: %s", _url)
 
     # Wait for browser to connect
     await _proxy_client.await_proxy_connection()

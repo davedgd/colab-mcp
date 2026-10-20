@@ -7,6 +7,16 @@
 
 An MCP server for controlling Google Colab from any AI coding agent. This fork fixes the bugs in the [official repo](https://github.com/googlecolab/colab-mcp) that block real day-to-day use and restores features Google removed upstream.
 
+## Additional Patches (davedgd fork)
+
+This repository is a fork of [SebastianGilPinzon/colab-mcp](https://github.com/SebastianGilPinzon/colab-mcp) (v1.1.0) with a further round of fixes for the browser handshake, tested against Hermes (Nous Research) driving Google Chrome:
+
+1. **The handshake no longer self-destructs on timeout or interruption** — `await_proxy_connection` gathered the proxy-client startup task into a 60s `wait_for`; any timeout (or a client cancelling the in-flight request) cancelled the fastmcp `Client`, closed the internal streams, and made every later browser dial open then immediately drop with a clean 1000 close — surfacing as "Disconnected from the local Colab MCP server" in the tab. The wait now only watches the connection event; the client task parks until the browser dials in.
+2. **The handshake URL is logged instead of auto-opened** — `webbrowser.open_new` fired the OS default browser, which never connects the proxy. Both tool implementations now log `Colab browser URL: …` to the server log so a host agent can open it in the correct browser (or an in-app preview pane) deliberately.
+3. **Threading through the tool stub** — the same URL fix applies to the session.py stub path used by the middleware, so behavior is consistent whichever code path handles the call.
+
+All changes live in `src/colab_mcp/__init__.py` and `src/colab_mcp/session.py`.
+
 ## Why This Fork?
 
 Three concrete dolores that the official `googlecolab/colab-mcp` doesn't solve — and that this fork does:
