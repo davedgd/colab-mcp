@@ -17,6 +17,7 @@ from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStre
 import asyncio
 import logging
 import mcp.types as types
+import os
 from mcp.shared.message import SessionMessage
 from pydantic_core import ValidationError
 import secrets
@@ -30,7 +31,10 @@ from websockets.typing import Subprotocol
 
 COLAB = "https://colab.research.google.com"
 COLAB_ALT_DOMAIN = "https://colab.google.com"
-SCRATCH_PATH = "/notebooks/empty.ipynb"
+# Notebook opened during the browser handshake. Default: Colab's ephemeral
+# scratchpad (contents are not saved per session). Point at a persistent
+# Drive notebook instead via env: COLAB_NOTEBOOK_PATH="/drive/<FILE_ID>"
+SCRATCH_PATH = os.environ.get("COLAB_NOTEBOOK_PATH", "/notebooks/empty.ipynb")
 
 
 class ColabWebSocketServer:
