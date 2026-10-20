@@ -17,6 +17,8 @@ This repository is a fork of [SebastianGilPinzon/colab-mcp](https://github.com/S
 
 All changes live in `src/colab_mcp/__init__.py` and `src/colab_mcp/session.py`.
 
+**Deploying:** install from this fork (its `main` carries these patches) — `git clone https://github.com/davedgd/colab-mcp.git`, or `uvx git+https://github.com/davedgd/colab-mcp`. The upstream repositories do not contain these fixes.
+
 ## Why This Fork?
 
 Three concrete dolores that the official `googlecolab/colab-mcp` doesn't solve — and that this fork does:
@@ -75,7 +77,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ### 2. Clone this repo
 
 ```bash
-git clone https://github.com/SebastianGilPinzon/colab-mcp.git
+git clone https://github.com/davedgd/colab-mcp.git
 ```
 
 ### 3. Configure your MCP client
@@ -178,7 +180,7 @@ Agent: get_cells()
 
 ## CLI Reference
 
-Once installed (via `uv run` or `uvx git+https://github.com/SebastianGilPinzon/colab-mcp`), the `colab-mcp` command supports these flags:
+Once installed (via `uv run` or `uvx git+https://github.com/davedgd/colab-mcp`), the `colab-mcp` command supports these flags:
 
 | Flag | Description |
 |------|-------------|
